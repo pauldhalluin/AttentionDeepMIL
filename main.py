@@ -140,6 +140,9 @@ def train(epoch):
     # calculate loss and error for epoch
     train_loss /= len(train_loader)
     train_error /= len(train_loader)
+    
+    print(list_label)
+    print(list_pred)
 
     auc_epoch = auc(list_label, list_pred)
 
