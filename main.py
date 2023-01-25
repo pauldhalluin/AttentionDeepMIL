@@ -129,7 +129,7 @@ def train(epoch):
         train_loss += loss.data[0]
         error, proba_prediction, _ = model.calculate_classification_error(data, bag_label)
 
-        list_pred.append(proba_prediction.detach().numpy()[0])
+        list_pred.append(proba_prediction.detach().numpy()[0, 0])
 
         train_error += error
         # backward pass
