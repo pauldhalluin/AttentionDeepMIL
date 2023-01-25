@@ -13,6 +13,7 @@ from model import Attention, GatedAttention
 import os
 import pandas as pd
 from torch.utils.data import TensorDataset, DataLoader
+from sklearn.metrics import auc
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch MNIST bags Example')
@@ -109,9 +110,14 @@ def train(epoch):
     model.train()
     train_loss = 0.
     train_error = 0.
+    list_label = []
+    list_pred = []
     for batch_idx, (data, label) in enumerate(train_loader):
         # bag_label = label[0]
         bag_label = label
+
+        list_label.append(bag_label.detach().numpy())
+
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
         data, bag_label = Variable(data), Variable(bag_label)
@@ -121,7 +127,10 @@ def train(epoch):
         # calculate loss and metrics
         loss, _ = model.calculate_objective(data, bag_label)
         train_loss += loss.data[0]
-        error, _ = model.calculate_classification_error(data, bag_label)
+        error, proba_prediction, _ = model.calculate_classification_error(data, bag_label)
+
+        list_pred.append(proba_prediction.detach().numpy())
+
         train_error += error
         # backward pass
         loss.backward()
@@ -132,7 +141,9 @@ def train(epoch):
     train_loss /= len(train_loader)
     train_error /= len(train_loader)
 
-    print('Epoch: {}, Loss: {:.4f}, Train error: {:.4f}'.format(epoch, train_loss.cpu().numpy()[0], train_error))
+    auc_epoch = auc(list_label, list_pred)
+
+    print('Epoch: {}, Loss: {:.4f}, Train AUC: {:.4f}'.format(epoch, train_loss.cpu().numpy()[0], auc_epoch))
 
 
 def test():

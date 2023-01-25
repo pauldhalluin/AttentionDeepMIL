@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sklearn.metrics import auc
 
 
 class Attention(nn.Module):
@@ -137,10 +136,9 @@ class GatedAttention(nn.Module):
     def calculate_classification_error(self, X, Y):
         Y = Y.float()
         Y_prob, Y_hat, _ = self.forward(X)
-        # error = 1. - Y_hat.eq(Y).cpu().float().mean().item()
-        error = auc(Y.detach().numpy(), Y_prob.detach().numpy())
+        error = 1. - Y_hat.eq(Y).cpu().float().mean().item()
 
-        return error, Y_hat
+        return error, Y_prob, Y_hat
 
     def calculate_objective(self, X, Y):
         Y = Y.float()
