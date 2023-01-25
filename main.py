@@ -116,7 +116,7 @@ def train(epoch):
         # bag_label = label[0]
         bag_label = label
 
-        list_label.append(bag_label.detach().numpy())
+        list_label.append(bag_label.detach().numpy()[0])
 
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
