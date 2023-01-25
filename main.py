@@ -13,7 +13,7 @@ from model import Attention, GatedAttention
 import os
 import pandas as pd
 from torch.utils.data import TensorDataset, DataLoader
-from sklearn.metrics import auc
+from sklearn.metrics import roc_auc_score
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch MNIST bags Example')
@@ -140,11 +140,8 @@ def train(epoch):
     # calculate loss and error for epoch
     train_loss /= len(train_loader)
     train_error /= len(train_loader)
-    
-    print(list_label)
-    print(list_pred)
 
-    auc_epoch = auc(list_label, list_pred)
+    auc_epoch = roc_auc_score(list_label, list_pred)
 
     print('Epoch: {}, Loss: {:.4f}, Train AUC: {:.4f}'.format(epoch, train_loss.cpu().numpy()[0], auc_epoch))
 
