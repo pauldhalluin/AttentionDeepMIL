@@ -10,6 +10,9 @@ from torch.autograd import Variable
 
 from dataloader import MnistBags
 from model import Attention, GatedAttention
+import os
+import pandas as pd
+from torch.utils.data import TensorDataset, DataLoader
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch MNIST bags Example')
@@ -35,6 +38,9 @@ parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='disables CUDA training')
 parser.add_argument('--model', type=str, default='attention', help='Choose b/w attention and gated_attention')
 
+parser.add_argument('--feature_path', type=str, default='', help='path for DATA')
+parser.add_argument('--y_path', type=str, default='', help='path for DATA')
+
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -46,25 +52,47 @@ if args.cuda:
 print('Load Train and Test Set')
 loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 
-train_loader = data_utils.DataLoader(MnistBags(target_number=args.target_number,
-                                               mean_bag_length=args.mean_bag_length,
-                                               var_bag_length=args.var_bag_length,
-                                               num_bag=args.num_bags_train,
-                                               seed=args.seed,
-                                               train=True),
-                                     batch_size=1,
-                                     shuffle=True,
-                                     **loader_kwargs)
 
-test_loader = data_utils.DataLoader(MnistBags(target_number=args.target_number,
-                                              mean_bag_length=args.mean_bag_length,
-                                              var_bag_length=args.var_bag_length,
-                                              num_bag=args.num_bags_test,
-                                              seed=args.seed,
-                                              train=False),
-                                    batch_size=1,
-                                    shuffle=False,
-                                    **loader_kwargs)
+def get_loader(feature_path, y_path):
+    list_samples = os.listdir(feature_path)
+    features = np.zeros((len(list_samples), 1000, 2048))
+    dict_y1 = pd.read_csv(os.path.join(y_path, "train_output.csv")).to_dict()
+    dict_y = {dict_y1['Sample ID'][key] : dict_y1['Target'][key] for key in dict_y1['Sample ID'].keys()}
+    y = np.zeros(len(list_samples))
+    for i, sample in enumerate(list_samples):
+        features[i] = np.load(os.path.join(feature_path, sample))[:, 3:]
+        y[i] = dict_y[sample]
+
+    tensor_x = torch.Tensor(features) # transform to torch tensor
+    tensor_y = torch.Tensor(y)
+
+    my_dataset = TensorDataset(tensor_x, tensor_y) # create your datset
+    my_dataloader = DataLoader(my_dataset, batch_size=1, shuffle=True) # create your dataloader
+    
+    return my_dataloader
+
+
+train_loader = get_loader(args.feature_path, args.y_path)
+
+# train_loader = data_utils.DataLoader(MnistBags(target_number=args.target_number,
+#                                                mean_bag_length=args.mean_bag_length,
+#                                                var_bag_length=args.var_bag_length,
+#                                                num_bag=args.num_bags_train,
+#                                                seed=args.seed,
+#                                                train=True),
+#                                      batch_size=1,
+#                                      shuffle=True,
+#                                      **loader_kwargs)
+
+# test_loader = data_utils.DataLoader(MnistBags(target_number=args.target_number,
+#                                               mean_bag_length=args.mean_bag_length,
+#                                               var_bag_length=args.var_bag_length,
+#                                               num_bag=args.num_bags_test,
+#                                               seed=args.seed,
+#                                               train=False),
+#                                     batch_size=1,
+#                                     shuffle=False,
+#                                     **loader_kwargs)
 
 print('Init Model')
 if args.model=='attention':
@@ -82,7 +110,8 @@ def train(epoch):
     train_loss = 0.
     train_error = 0.
     for batch_idx, (data, label) in enumerate(train_loader):
-        bag_label = label[0]
+        # bag_label = label[0]
+        bag_label = label
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
         data, bag_label = Variable(data), Variable(bag_label)
@@ -139,5 +168,5 @@ if __name__ == "__main__":
     print('Start Training')
     for epoch in range(1, args.epochs + 1):
         train(epoch)
-    print('Start Testing')
-    test()
+    # print('Start Testing')
+    # test()

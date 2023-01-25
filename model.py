@@ -72,23 +72,27 @@ class Attention(nn.Module):
 class GatedAttention(nn.Module):
     def __init__(self):
         super(GatedAttention, self).__init__()
-        self.L = 500
+        # self.L = 500
+        # self.D = 128
+        # self.K = 1
+
+        self.L = 2048
         self.D = 128
         self.K = 1
 
-        self.feature_extractor_part1 = nn.Sequential(
-            nn.Conv2d(1, 20, kernel_size=5),
-            nn.ReLU(),
-            nn.MaxPool2d(2, stride=2),
-            nn.Conv2d(20, 50, kernel_size=5),
-            nn.ReLU(),
-            nn.MaxPool2d(2, stride=2)
-        )
+        # self.feature_extractor_part1 = nn.Sequential(
+        #     nn.Conv2d(1, 20, kernel_size=5),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(2, stride=2),
+        #     nn.Conv2d(20, 50, kernel_size=5),
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(2, stride=2)
+        # )
 
-        self.feature_extractor_part2 = nn.Sequential(
-            nn.Linear(50 * 4 * 4, self.L),
-            nn.ReLU(),
-        )
+        # self.feature_extractor_part2 = nn.Sequential(
+        #     nn.Linear(50 * 4 * 4, self.L),
+        #     nn.ReLU(),
+        # )
 
         self.attention_V = nn.Sequential(
             nn.Linear(self.L, self.D),
@@ -108,12 +112,13 @@ class GatedAttention(nn.Module):
         )
 
     def forward(self, x):
-        x = x.squeeze(0)
+        # x = x.squeeze(0)
 
-        H = self.feature_extractor_part1(x)
-        H = H.view(-1, 50 * 4 * 4)
-        H = self.feature_extractor_part2(H)  # NxL
-
+        # H = self.feature_extractor_part1(x)
+        # H = H.view(-1, 50 * 4 * 4)
+        # H = self.feature_extractor_part2(H)  # NxL
+        
+        H = x
         A_V = self.attention_V(H)  # NxD
         A_U = self.attention_U(H)  # NxD
         A = self.attention_weights(A_V * A_U) # element wise multiplication # NxK
