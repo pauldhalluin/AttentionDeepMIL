@@ -141,7 +141,7 @@ def train(epoch):
     train_loss /= len(train_loader)
     train_error /= len(train_loader)
 
-    auc_epoch = auc(list_label, list_pred)
+    auc_epoch = auc(list_label[:,0,0], list_pred)
 
     print('Epoch: {}, Loss: {:.4f}, Train AUC: {:.4f}'.format(epoch, train_loss.cpu().numpy()[0], auc_epoch))
 
