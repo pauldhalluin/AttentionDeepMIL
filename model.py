@@ -125,7 +125,7 @@ class GatedAttention(nn.Module):
         A = torch.transpose(A, 1, 0)  # KxN
         A = F.softmax(A, dim=1)  # softmax over N
 
-        M = torch.mm(A, H)  # KxL
+        M = torch.matmul(A, H)  # KxL
 
         Y_prob = self.classifier(M)
         Y_hat = torch.ge(Y_prob, 0.5).float()
