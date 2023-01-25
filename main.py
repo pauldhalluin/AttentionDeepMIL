@@ -129,7 +129,7 @@ def train(epoch):
         train_loss += loss.data[0]
         error, proba_prediction, _ = model.calculate_classification_error(data, bag_label)
 
-        list_pred.append(proba_prediction.detach().numpy())
+        list_pred.append(proba_prediction.detach().numpy()[0])
 
         train_error += error
         # backward pass
@@ -141,7 +141,6 @@ def train(epoch):
     train_loss /= len(train_loader)
     train_error /= len(train_loader)
 
-    print(list_label)
     auc_epoch = auc(list_label[:,0,0], list_pred)
 
     print('Epoch: {}, Loss: {:.4f}, Train AUC: {:.4f}'.format(epoch, train_loss.cpu().numpy()[0], auc_epoch))
