@@ -138,7 +138,7 @@ class GatedAttention(nn.Module):
         Y = Y.float()
         Y_prob, Y_hat, _ = self.forward(X)
         # error = 1. - Y_hat.eq(Y).cpu().float().mean().item()
-        error = auc(Y.numpy(), Y_prob.numpy())
+        error = auc(Y.detach().numpy(), Y_prob.detach().numpy())
 
         return error, Y_hat
 
