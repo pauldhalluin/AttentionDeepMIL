@@ -140,8 +140,6 @@ def train(epoch):
     # calculate loss and error for epoch
     train_loss /= len(train_loader)
 
-    print(np.array(list_label).shape)
-    print(np.array(list_pred).shape)
     auc_epoch = roc_auc_score(list_label, list_pred)
 
     # return train_loss.cpu.numpy()[0], auc_epoch
