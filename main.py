@@ -201,6 +201,7 @@ if __name__ == "__main__":
 
         auc_max = -1
         stop = 0
+        message_es = True
 
         for epoch in range(1, args.epochs + 1):
             if stop < args.early_stopping:
@@ -214,7 +215,7 @@ if __name__ == "__main__":
                 else:
                     stop += 1
 
-                print('\nEpoch {}/{}'.format(epoch+1, args.epochs))
+                print('\nEpoch {}/{}'.format(epoch, args.epochs))
                 print('Train Loss: {:.4f}, Val loss: {:.4f}'.format(train_loss, val_loss))
                 print('Train AUC: {:.4f}, Val AUC: {:.4f}'.format(train_auc, val_auc))
 
@@ -223,6 +224,10 @@ if __name__ == "__main__":
 
                 list_loss_val.append(val_loss)
                 list_auc_val.append(val_auc)
+            else:
+                if message_es:
+                    print('\nSTOPPING TRAINING')
+                    message_es = False
 
         list_auc.append(auc_max)
 
