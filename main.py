@@ -127,7 +127,6 @@ def train(epoch):
         optimizer.zero_grad()
         # calculate loss and metrics
         loss, _, y_prob = model.calculate_objective(data, bag_label)
-        print(loss.squeeze().detach().numpy())
         train_loss += loss.squeeze().detach().numpy()
         # train_loss += loss.item()
 
@@ -139,14 +138,12 @@ def train(epoch):
         # step
         optimizer.step()
 
-        assert 1==0
-
     # calculate loss and error for epoch
     train_loss /= len(train_loader)
 
     auc_epoch = roc_auc_score(list_label, list_pred)
 
-    return train_loss.cpu().numpy()[0], auc_epoch
+    return train_loss, auc_epoch
     # return train_loss, auc_epoch
 
 
@@ -165,7 +162,7 @@ def eval(epoch):
 
         # calculate loss and metrics
         loss, _, y_prob = model.calculate_objective(data, bag_label)
-        val_loss += loss.data[0]
+        val_loss += loss.squeeze().detach().numpy()
         # val_loss += loss.item()
 
         list_pred.append(y_prob.detach().numpy()[0, 0])
@@ -175,7 +172,7 @@ def eval(epoch):
     val_loss /= len(val_loader)
     auc_epoch = roc_auc_score(list_label, list_pred)
 
-    return val_loss.cpu().numpy()[0], auc_epoch
+    return val_loss, auc_epoch
     # return val_loss, auc_epoch
 
 
