@@ -181,6 +181,9 @@ if __name__ == "__main__":
 
     list_auc = []
 
+    new_model_path = os.path.join(args.model_path, args.batch_size + '_' + args.lr + '_' + args.reg)
+    os.mkdirs(new_model_path)
+
     for i, (train_index, val_index) in enumerate(skf.split(list_samples, y)):
         print(f"\nSplit {i+1}:")
 
@@ -216,7 +219,7 @@ if __name__ == "__main__":
 
                 if val_auc > auc_max:
                     auc_max = val_auc
-                    torch.save(model.state_dict(), os.path.join(args.model_path, 'model_fold_{}.pth'.format(i+1)))
+                    torch.save(model.state_dict(), os.path.join(new_model_path, 'model_fold_{}.pth'.format(i+1)))
                     stop = 0
                 else:
                     stop += 1
