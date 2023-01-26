@@ -167,9 +167,6 @@ def eval(epoch):
 
         list_pred.append(y_prob.detach().numpy()[0, 0])
         # list_pred += list(y_prob.detach().numpy()[:,0, 0])
-
-    print(list_label)
-    print(list_pred)
      
     # calculate loss and error for epoch
     val_loss /= len(val_loader)
