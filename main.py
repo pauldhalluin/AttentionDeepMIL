@@ -118,7 +118,7 @@ def train(epoch):
 
         list_label.append(int(bag_label.detach().numpy()[0]))
         # list_label += list(bag_label.detach().numpy())
-        print(list_label[-1].shape)
+        print(list_label[-1])
 
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
@@ -134,7 +134,7 @@ def train(epoch):
 
         list_pred.append(y_prob.detach().numpy()[0, 0])
         # list_pred += list(y_prob.detach().numpy()[:,0, 0])
-        print(list_pred[-1].shape)
+        print(list_pred[-1])
 
         # backward pass
         loss.backward()
