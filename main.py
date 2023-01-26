@@ -196,31 +196,42 @@ if __name__ == "__main__":
         list_auc_val = []
 
         auc_max = -1
+        stop = 0
 
         for epoch in range(1, args.epochs + 1):
-            train_loss, train_auc = train(epoch)
-            val_loss, val_auc = eval(epoch)
+            if stop < 5:
+                train_loss, train_auc = train(epoch)
+                val_loss, val_auc = eval(epoch)
 
-            if val_auc > auc_max:
-                torch.save(model.state_dict(), os.path.join(args.model_path, 'model_fold_{}.pth'.format(i+1)))
+                if val_auc > auc_max:
+                    auc_max = val_auc
+                    torch.save(model.state_dict(), os.path.join(args.model_path, 'model_fold_{}.pth'.format(i+1)))
+                    stop = 0
+                else:
+                    stop += 1
 
-            print('\nTrain Loss: {:.4f}, Val loss: {:.4f}'.format(train_loss, val_loss))
-            print('Train AUC: {:.4f}, Val AUC: {:.4f}'.format(train_auc, val_auc))
+                print('\nEpoch {}/{}'.format(epoch+1, args.epochs))
+                print('Train Loss: {:.4f}, Val loss: {:.4f}'.format(train_loss, val_loss))
+                print('Train AUC: {:.4f}, Val AUC: {:.4f}'.format(train_auc, val_auc))
 
-            list_loss_train.append(train_loss)
-            list_auc_train.append(train_auc)
+                print('\n')
+                print(stop)
+                print(auc_max)
 
-            list_loss_val.append(val_loss)
-            list_auc_val.append(val_auc)
+                list_loss_train.append(train_loss)
+                list_auc_train.append(train_auc)
 
-        plt.plot(train_loss, label='train')
-        plt.plot(val_loss, label='val')
-        plt.legend()
-        plt.title('Loss')
-        plt.show()
+                list_loss_val.append(val_loss)
+                list_auc_val.append(val_auc)
 
-        plt.plot(train_auc, label='train')
-        plt.plot(val_auc, label='val')
-        plt.legend()
-        plt.title('AUC')
-        plt.show()   
+        # plt.plot(train_loss, label='train')
+        # plt.plot(val_loss, label='val')
+        # plt.legend()
+        # plt.title('Loss')
+        # plt.show()
+
+        # plt.plot(train_auc, label='train')
+        # plt.plot(val_auc, label='val')
+        # plt.legend()
+        # plt.title('AUC')
+        # plt.show() 
