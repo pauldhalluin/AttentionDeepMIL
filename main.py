@@ -142,7 +142,7 @@ def train(epoch):
 
     auc_epoch = roc_auc_score(list_label, list_pred)
 
-    return train_loss.cpu.numpy()[0], auc_epoch
+    return train_loss.cpu().numpy()[0], auc_epoch
     # return train_loss, auc_epoch
 
 
