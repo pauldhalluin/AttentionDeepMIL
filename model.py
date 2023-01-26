@@ -119,7 +119,6 @@ class GatedAttention(nn.Module):
         # H = self.feature_extractor_part2(H)  # NxL
 
         H = x
-        print(H.size())
         # H = x.squeeze(0)
         A_V = self.attention_V(H)  # NxD
         A_U = self.attention_U(H)  # NxD
@@ -128,12 +127,13 @@ class GatedAttention(nn.Module):
         # A = torch.transpose(A, 1, 0)  # KxN
         A = F.softmax(A, dim=2) # softmax over N
         # A = F.softmax(A, dim=1) # softmax over N
-        print(A.size())
         # M = torch.mm(A, H)  # KxL
         M = torch.mul(A, H)  # KxL
 
         Y_prob = self.classifier(M)
+        print(Y_prob)
         Y_hat = torch.ge(Y_prob, 0.5).float()
+        print(Y_hat)
 
         return Y_prob, Y_hat, A
 
