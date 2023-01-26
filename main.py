@@ -110,14 +110,14 @@ def get_loaders(args, list_samples, y, train_index, val_index):
 def train(epoch):
     model.train()
     train_loss = 0.
-    train_error = 0.
     list_label = []
     list_pred = []
     for batch_idx, (data, label) in enumerate(train_loader):
         # bag_label = label[0]
         bag_label = label
-        print(label)
+        print(list(bag_label.detach().numpy()))
         assert 0==1
+        # list_label.append(int(bag_label.detach().numpy()[0]))
         list_label.append(int(bag_label.detach().numpy()[0]))
 
         if args.cuda:
@@ -139,7 +139,6 @@ def train(epoch):
 
     # calculate loss and error for epoch
     train_loss /= len(train_loader)
-    train_error /= len(train_loader)
 
     auc_epoch = roc_auc_score(list_label, list_pred)
 
