@@ -69,6 +69,9 @@ def get_y(list_samples, y_path):
 
 def get_loaders(feature_path, list_samples, y, train_index, val_index):
 
+    print(train_index)
+    print(val_index)
+
     samples_train = list_samples[train_index.astype(int)]
     samples_val = list_samples[val_index.astype(int)]
 
