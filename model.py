@@ -122,19 +122,13 @@ class GatedAttention(nn.Module):
         print(H.size())
         # H = x.squeeze(0)
         A_V = self.attention_V(H)  # NxD
-        print(A_V.size())
         A_U = self.attention_U(H)  # NxD
-        print(A_U.size())
         A = self.attention_weights(A_V * A_U) # element wise multiplication # NxK
-        print(A.size())
         A = torch.transpose(A, 2, 1)  # KxN
         # A = torch.transpose(A, 1, 0)  # KxN
-        test = F.softmax(A[0, 0, :])
-        A = F.softmax(A, dim=2)
-        print(A[0, 0, :] - test)
-        print(A[0]) # softmax over N
+        A = F.softmax(A, dim=2) # softmax over N
+        # A = F.softmax(A, dim=1) # softmax over N
         print(A.size())
-
         M = torch.mm(A, H)  # KxL
 
         Y_prob = self.classifier(M)
