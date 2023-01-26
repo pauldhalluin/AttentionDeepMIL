@@ -69,8 +69,8 @@ def get_y(list_samples, y_path):
 
 def get_loaders(feature_path, list_samples, y, train_index, val_index):
 
-    samples_train = list_samples[train_index]
-    samples_val = list_samples[val_index]
+    samples_train = list_samples[train_index.astype(int)]
+    samples_val = list_samples[val_index.astype(int)]
 
     X_train = np.zeros((len(samples_train), 1000, 2048))
     X_val = np.zeros((len(samples_val), 1000, 2048))
