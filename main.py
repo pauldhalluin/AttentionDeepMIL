@@ -55,24 +55,34 @@ if args.cuda:
     print('\nGPU is ON!')
 
 
-def get_data(feature_path, y_path):
-    list_samples = os.listdir(feature_path)
-    features = np.zeros((len(list_samples), 1000, 2048))
-    dict_y1 = pd.read_csv(os.path.join(y_path, "train_output.csv")).to_dict()
-    dict_y = {dict_y1['Sample ID'][key] : dict_y1['Target'][key] for key in dict_y1['Sample ID'].keys()}
+def get_y(list_samples, y_path):
+
+    dict_y = pd.read_csv(os.path.join(y_path, "train_output.csv")).to_dict()
+    dict_y = {dict_y['Sample ID'][key] : dict_y['Target'][key] for key in dict_y['Sample ID'].keys()}
     y = np.zeros(len(list_samples))
 
     for i, sample in enumerate(list_samples):
-        features[i] = np.load(os.path.join(feature_path, sample))[:, 3:]
         y[i] = dict_y[sample]
+    
+    return y
 
-    return features, y
 
+def get_loaders(feature_path, list_samples, y, train_index, val_index):
 
-def get_loaders(X, y, train_index, val_index):
+    samples_train = list_samples[train_index]
+    samples_val = list_samples[val_index]
 
-    X_train, y_train = X[train_index], y[train_index]
-    X_val, y_val = X[val_index], y[val_index]
+    X_train = np.zeros((len(samples_train), 1000, 2048))
+    X_val = np.zeros((len(samples_val), 1000, 2048))
+
+    for i, sample in enumerate(samples_train):
+        X_train[i] = np.load(os.path.join(feature_path, sample))[:, 3:]
+
+    for i, sample in enumerate(samples_val):
+        X_val[i] = np.load(os.path.join(feature_path, sample))[:, 3:]
+
+    y_train = y[train_index]
+    y_val = y[val_index]
 
     X_train = torch.Tensor(X_train) # transform to torch tensor
     y_train = torch.Tensor(y_train)
@@ -156,9 +166,12 @@ def eval(epoch):
 
 
 if __name__ == "__main__":
-    skf = StratifiedKFold(n_splits=5, shuffle=True)
+    skf = StratifiedKFold(n_splits=1, shuffle=True)
 
-    for i, (train_index, val_index) in enumerate(skf.split(X, y)):
+    list_samples = os.listdir(args.feature_path)
+    y = get_y(list_samples, args.y_path)
+
+    for i, (train_index, val_index) in enumerate(skf.split(list_samples, y)):
         print(f"\nSplit {i+1}:")
 
         print('Init Model')
@@ -172,8 +185,7 @@ if __name__ == "__main__":
 
         print('Load Train and Test Set')
         loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-        X, y = get_data(args.feature_path, args.y_path)
-        X, y = get_loaders(X, y, train_index, val_index)
+        train_loader, val_loader = get_loaders(args.feature_path, list_samples, y, train_index, val_index)
 
         print('Start Training')
 
