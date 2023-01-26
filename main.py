@@ -141,11 +141,13 @@ def train(epoch):
         # step
         optimizer.step()
 
+        assert 1==0
+
     # calculate loss and error for epoch
     train_loss /= len(train_loader)
 
     auc_epoch = roc_auc_score(list_label, list_pred)
-    print(train_loss.cpu().numpy()[0])
+
     return train_loss.cpu().numpy()[0], auc_epoch
     # return train_loss, auc_epoch
 
