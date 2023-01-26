@@ -173,6 +173,8 @@ if __name__ == "__main__":
     list_samples = os.listdir(args.feature_path)
     y = get_y(list_samples, args.y_path)
 
+    list_auc = []
+
     for i, (train_index, val_index) in enumerate(skf.split(list_samples, y)):
         print(f"\nSplit {i+1}:")
 
@@ -222,6 +224,8 @@ if __name__ == "__main__":
                 list_loss_val.append(val_loss)
                 list_auc_val.append(val_auc)
 
+        list_auc.append(auc_max)
+
         plt.plot(train_loss, label='train')
         plt.plot(val_loss, label='val')
         plt.legend()
@@ -233,3 +237,7 @@ if __name__ == "__main__":
         plt.legend()
         plt.title('AUC (best={:.3f})'.format(auc_max))
         plt.savefig(os.path.join(args.graph_path, 'auc_fold_{}.png'.format(i+1)))
+    
+    print('\nAUC results\n')
+    for i, auc in enumerate(list_auc):
+        print('Fold {} : {:.3f}'.format(i+1, auc))
