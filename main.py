@@ -127,8 +127,8 @@ def train(epoch):
         optimizer.zero_grad()
         # calculate loss and metrics
         loss, _, y_prob = model.calculate_objective(data, bag_label)
-        print(loss.squeeze())
-        train_loss += loss.data[0]
+        print(loss.squeeze().detach().numpy()[0])
+        train_loss += loss.squeeze().detach().numpy()[0]
         # train_loss += loss.item()
 
         list_pred.append(y_prob.detach().numpy()[0, 0])
