@@ -135,25 +135,6 @@ class GatedAttention(nn.Module):
 
         return Y_prob, Y_hat, A
 
-    def test_forward(self,x):
-        # x = x.squeeze(0)
-
-        # H = self.feature_extractor_part1(x)
-        # H = H.view(-1, 50 * 4 * 4)
-        # H = self.feature_extractor_part2(H)  # NxL
-
-        H = x.squeeze(0)
-        A_V = self.attention_V(H)  # NxD
-        A_U = self.attention_U(H)  # NxD
-        A = self.attention_weights(A_V * A_U) # element wise multiplication # NxK
-        A = torch.transpose(A, 1, 0)  # KxN
-        A = F.softmax(A, dim=1) # softmax over N
-        M = torch.mm(A, H)  # KxL
-
-        Y_prob = self.classifier(M)
-        Y_hat = torch.ge(Y_prob, 0.5).float()
-
-        return Y_prob, Y_hat, A
 
     # AUXILIARY METHODS
     def calculate_classification_error(self, X, Y):
