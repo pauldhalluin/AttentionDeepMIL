@@ -212,8 +212,13 @@ if __name__ == "__main__":
                 else:
                     stop += 1
 
-                print('\nTrain Loss: {:.4f}, Val loss: {:.4f}'.format(train_loss, val_loss))
+                print('\nEpoch {}/{}'.format(epoch+1, args.epochs))
+                print('Train Loss: {:.4f}, Val loss: {:.4f}'.format(train_loss, val_loss))
                 print('Train AUC: {:.4f}, Val AUC: {:.4f}'.format(train_auc, val_auc))
+
+                print('\n')
+                print(stop)
+                print(auc_max)
 
                 list_loss_train.append(train_loss)
                 list_auc_train.append(train_auc)
