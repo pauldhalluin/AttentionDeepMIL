@@ -145,7 +145,8 @@ def train(epoch):
 
     auc_epoch = roc_auc_score(list_label, list_pred)
 
-    return train_loss.numpy()[0], auc_epoch
+    # return train_loss.cpu.numpy()[0], auc_epoch
+    return train_loss, auc_epoch
 
 
 def eval(epoch):
@@ -162,7 +163,8 @@ def eval(epoch):
 
         # calculate loss and metrics
         loss, _ = model.calculate_objective(data, bag_label)
-        val_loss += loss.data[0]
+        # val_loss += loss.data[0]
+        val_loss += loss.item()
         error, proba_prediction, _ = model.calculate_classification_error(data, bag_label)
 
         list_pred.append(proba_prediction.detach().numpy()[0, 0])
@@ -171,7 +173,8 @@ def eval(epoch):
     val_loss /= len(val_loader)
     auc_epoch = roc_auc_score(list_label, list_pred)
 
-    return val_loss.cpu().numpy()[0], auc_epoch
+    # return val_loss.cpu().numpy()[0], auc_epoch
+    return val_loss, auc_epoch
 
 
 if __name__ == "__main__":
