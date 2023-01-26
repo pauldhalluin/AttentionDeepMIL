@@ -118,7 +118,8 @@ class GatedAttention(nn.Module):
         # H = H.view(-1, 50 * 4 * 4)
         # H = self.feature_extractor_part2(H)  # NxL
 
-        H = x.squeeze(0)
+        H = x
+        # H = x.squeeze(0)
         A_V = self.attention_V(H)  # NxD
         A_U = self.attention_U(H)  # NxD
         A = self.attention_weights(A_V * A_U) # element wise multiplication # NxK
