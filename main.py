@@ -132,7 +132,7 @@ def train(epoch):
         train_loss += loss.item()
         # list_pred.append(y_prob.detach().numpy()[0, 0])
         list_pred += list(y_prob.detach().numpy()[0, 0])
-        print(list(y_prob.detach().numpy()[0, 0]))
+        print(list(y_prob.detach().numpy()[:,0, 0]))
         assert 0==1
 
         # backward pass
