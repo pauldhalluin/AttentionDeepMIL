@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser(description='Test ')
 
 parser.add_argument('--feature_path', type=str, default='', help='path for features')
-parser.add_argument('--y_path', type=str, default='', help='path for y')
 parser.add_argument('--model_path', type=str, default='', help='path for model')
 parser.add_argument('--csv_path', type=str, default='', help='path for predictions')
 parser.add_argument('--model', type=str, default='attention', help='Choose b/w attention and gated_attention')
@@ -58,12 +57,12 @@ if __name__ == "__main__":
     list_samples = os.listdir(args.feature_path)
     list_models = os.listdir(args.model_path)
 
-    for model in list_models:
+    for model_dict in list_models:
         if args.model=='attention':
             model = Attention()
         elif args.model=='gated_attention':
             model = GatedAttention()
-        model.load_state_dict(os.path.join(args.model_path, model))
+        model.load_state_dict(os.path.join(args.model_path, model_dict))
 
         X_test = get_X_test(args, list_samples)
         list_pred = eval(X_test)
