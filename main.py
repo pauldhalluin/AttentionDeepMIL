@@ -115,10 +115,9 @@ def train(epoch):
     for batch_idx, (data, label) in enumerate(train_loader):
         # bag_label = label[0]
         bag_label = label
-        print(list(bag_label.detach().numpy()))
-        assert 0==1
+
         # list_label.append(int(bag_label.detach().numpy()[0]))
-        list_label.append(int(bag_label.detach().numpy()[0]))
+        list_label += list(bag_label.detach().numpy())
 
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
@@ -130,7 +129,8 @@ def train(epoch):
         loss, _, y_prob = model.calculate_objective(data, bag_label)
         # train_loss += loss.data[0]
         train_loss += loss.item()
-        list_pred.append(y_prob.detach().numpy()[0, 0])
+        # list_pred.append(y_prob.detach().numpy()[0, 0])
+        list_pred += list(y_prob.detach().numpy()[0, 0])
 
         # backward pass
         loss.backward()
@@ -152,7 +152,8 @@ def eval(epoch):
     list_label = []
     list_pred = []
     for batch_idx, (data, bag_label) in enumerate(val_loader):
-        list_label.append(int(bag_label.numpy()[0]))
+        # list_label.append(int(bag_label.numpy()[0]))
+        list_label += list(bag_label.detach().numpy())
 
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
@@ -163,7 +164,8 @@ def eval(epoch):
         # val_loss += loss.data[0]
         val_loss += loss.item()
 
-        list_pred.append(y_prob.detach().numpy()[0, 0])
+        # list_pred.append(y_prob.detach().numpy()[0, 0])
+        list_pred += list(y_prob.detach().numpy()[0, 0])
 
     # calculate loss and error for epoch
     val_loss /= len(val_loader)
