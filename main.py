@@ -116,7 +116,8 @@ def train(epoch):
     for batch_idx, (data, label) in enumerate(train_loader):
         # bag_label = label[0]
         bag_label = label
-
+        print(label)
+        assert 0==1
         list_label.append(int(bag_label.detach().numpy()[0]))
 
         if args.cuda:
@@ -126,14 +127,11 @@ def train(epoch):
         # reset gradients
         optimizer.zero_grad()
         # calculate loss and metrics
-        loss, _ = model.calculate_objective(data, bag_label)
+        loss, _, y_prob = model.calculate_objective(data, bag_label)
         # train_loss += loss.data[0]
         train_loss += loss.item()
-        error, proba_prediction, _ = model.calculate_classification_error(data, bag_label)
+        list_pred.append(y_prob.detach().numpy()[0, 0])
 
-        list_pred.append(proba_prediction.detach().numpy()[0, 0])
-
-        train_error += error
         # backward pass
         loss.backward()
         # step
@@ -162,12 +160,11 @@ def eval(epoch):
         data, bag_label = Variable(data), Variable(bag_label)
 
         # calculate loss and metrics
-        loss, _ = model.calculate_objective(data, bag_label)
+        loss, _, y_prob = model.calculate_objective(data, bag_label)
         # val_loss += loss.data[0]
         val_loss += loss.item()
-        error, proba_prediction, _ = model.calculate_classification_error(data, bag_label)
 
-        list_pred.append(proba_prediction.detach().numpy()[0, 0])
+        list_pred.append(y_prob.detach().numpy()[0, 0])
 
     # calculate loss and error for epoch
     val_loss /= len(val_loader)
