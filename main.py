@@ -223,4 +223,4 @@ if __name__ == "__main__":
         plt.plot(val_auc, label='val')
         plt.legend()
         plt.title('AUC')
-        plt.show()      
+        plt.show()   
