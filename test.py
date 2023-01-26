@@ -87,4 +87,4 @@ if __name__ == "__main__":
     ], "Your submission file must have columns `Sample ID` and `Target`"
 
     # save the submission as a csv file
-    submission.to_csv(os.path.join(args.csv_path, "test_output.csv", index=None))
+    submission.to_csv(os.path.join(args.csv_path, "test_output.csv"), index=None)
