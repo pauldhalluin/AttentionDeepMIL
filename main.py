@@ -158,8 +158,6 @@ def eval(epoch):
 if __name__ == "__main__":
     skf = StratifiedKFold(n_splits=5, shuffle=True)
 
-    X, y = get_data(args.feature_path, args.y_path)
-
     for i, (train_index, val_index) in enumerate(skf.split(X, y)):
         print(f"\nSplit {i+1}:")
 
@@ -174,7 +172,8 @@ if __name__ == "__main__":
 
         print('Load Train and Test Set')
         loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-        train_loader, val_loader = get_loaders(X, y, train_index, val_index)
+        X, y = get_data(args.feature_path, args.y_path)
+        X, y = get_loaders(X, y, train_index, val_index)
 
         print('Start Training')
 
