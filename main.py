@@ -42,9 +42,11 @@ parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='disables CUDA training')
 parser.add_argument('--model', type=str, default='attention', help='Choose b/w attention and gated_attention')
 
+parser.add_argument('--early_stopping', type=int, default=4, help='epochs until stopping')
 parser.add_argument('--feature_path', type=str, default='', help='path for features')
 parser.add_argument('--y_path', type=str, default='', help='path for y')
 parser.add_argument('--model_path', type=str, default='', help='path for model')
+parser.add_argument('--graph_path', type=str, default='', help='path for graphs')
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -199,7 +201,7 @@ if __name__ == "__main__":
         stop = 0
 
         for epoch in range(1, args.epochs + 1):
-            if stop < 5:
+            if stop < args.early_stopping:
                 train_loss, train_auc = train(epoch)
                 val_loss, val_auc = eval(epoch)
 
@@ -214,24 +216,20 @@ if __name__ == "__main__":
                 print('Train Loss: {:.4f}, Val loss: {:.4f}'.format(train_loss, val_loss))
                 print('Train AUC: {:.4f}, Val AUC: {:.4f}'.format(train_auc, val_auc))
 
-                print('\n')
-                print(stop)
-                print(auc_max)
-
                 list_loss_train.append(train_loss)
                 list_auc_train.append(train_auc)
 
                 list_loss_val.append(val_loss)
                 list_auc_val.append(val_auc)
 
-        # plt.plot(train_loss, label='train')
-        # plt.plot(val_loss, label='val')
-        # plt.legend()
-        # plt.title('Loss')
-        # plt.show()
+        plt.plot(train_loss, label='train')
+        plt.plot(val_loss, label='val')
+        plt.legend()
+        plt.title('Loss')
+        plt.savefig(os.path.join(args.graph_path, 'loss_fold_{}.png'.format(i+1)))
 
-        # plt.plot(train_auc, label='train')
-        # plt.plot(val_auc, label='val')
-        # plt.legend()
-        # plt.title('AUC')
-        # plt.show() 
+        plt.plot(train_auc, label='train')
+        plt.plot(val_auc, label='val')
+        plt.legend()
+        plt.title('AUC (best={:.3f})'.format(auc_max))
+        plt.savefig(os.path.join(args.graph_path, 'auc_fold_{}.png'.format(i+1)))
