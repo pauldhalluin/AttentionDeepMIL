@@ -19,13 +19,30 @@ import matplotlib.pyplot as plt
 
 
 # Training settings
-parser = argparse.ArgumentParser(description='PyTorch MNIST bags Example')
+parser = argparse.ArgumentParser(description='PyTorch H&E bags Example')
+
+parser.add_argument('--feature_path', type=str, default='', help='path for features')
+parser.add_argument('--y_path', type=str, default='', help='path for y')
+parser.add_argument('--model_path', type=str, default='', help='path for model')
+parser.add_argument('--graph_path', type=str, default='', help='path for graphs')
+
+parser.add_argument('--model', type=str, default='attention', help='Choose b/w attention and gated_attention')
 parser.add_argument('--epochs', type=int, default=20, metavar='N',
                     help='number of epochs to train (default: 20)')
+parser.add_argument('--batch_size', type=int, default=1, help='number of slides in a batch')                  
 parser.add_argument('--lr', type=float, default=0.0005, metavar='LR',
                     help='learning rate (default: 0.0005)')
 parser.add_argument('--reg', type=float, default=10e-5, metavar='R',
                     help='weight decay')
+parser.add_argument('--early_stopping', type=int, default=4, help='epochs until stopping')
+
+
+parser.add_argument('--seed', type=int, default=1, metavar='S',
+                    help='random seed (default: 1)')
+parser.add_argument('--no-cuda', action='store_true', default=False,
+                    help='disables CUDA training')
+
+
 parser.add_argument('--target_number', type=int, default=9, metavar='T',
                     help='bags have a positive labels if they contain at least one 9')
 parser.add_argument('--mean_bag_length', type=int, default=10, metavar='ML',
@@ -36,17 +53,6 @@ parser.add_argument('--num_bags_train', type=int, default=200, metavar='NTrain',
                     help='number of bags in training set')
 parser.add_argument('--num_bags_test', type=int, default=50, metavar='NTest',
                     help='number of bags in test set')
-parser.add_argument('--seed', type=int, default=1, metavar='S',
-                    help='random seed (default: 1)')
-parser.add_argument('--no-cuda', action='store_true', default=False,
-                    help='disables CUDA training')
-parser.add_argument('--model', type=str, default='attention', help='Choose b/w attention and gated_attention')
-
-parser.add_argument('--early_stopping', type=int, default=4, help='epochs until stopping')
-parser.add_argument('--feature_path', type=str, default='', help='path for features')
-parser.add_argument('--y_path', type=str, default='', help='path for y')
-parser.add_argument('--model_path', type=str, default='', help='path for model')
-parser.add_argument('--graph_path', type=str, default='', help='path for graphs')
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -57,9 +63,9 @@ if args.cuda:
     print('\nGPU is ON!')
 
 
-def get_y(list_samples, y_path):
+def get_y(list_samples, args):
 
-    dict_y = pd.read_csv(os.path.join(y_path, "train_output.csv")).to_dict()
+    dict_y = pd.read_csv(os.path.join(args.y_path, "train_output.csv")).to_dict()
     dict_y = {dict_y['Sample ID'][key] : dict_y['Target'][key] for key in dict_y['Sample ID'].keys()}
     y = np.zeros(len(list_samples))
 
@@ -69,7 +75,7 @@ def get_y(list_samples, y_path):
     return y
 
 
-def get_loaders(feature_path, list_samples, y, train_index, val_index):
+def get_loaders(args, list_samples, y, train_index, val_index):
 
     samples_train = [list_samples[i] for i in train_index]
     samples_val = [list_samples[i] for i in val_index]
@@ -78,10 +84,10 @@ def get_loaders(feature_path, list_samples, y, train_index, val_index):
     X_val = np.zeros((len(samples_val), 1000, 2048))
 
     for i, sample in enumerate(samples_train):
-        X_train[i] = np.load(os.path.join(feature_path, sample))[:, 3:]
+        X_train[i] = np.load(os.path.join(args.feature_path, sample))[:, 3:]
 
     for i, sample in enumerate(samples_val):
-        X_val[i] = np.load(os.path.join(feature_path, sample))[:, 3:]
+        X_val[i] = np.load(os.path.join(args.feature_path, sample))[:, 3:]
 
     y_train = y[train_index]
     y_val = y[val_index]
@@ -90,13 +96,13 @@ def get_loaders(feature_path, list_samples, y, train_index, val_index):
     y_train = torch.Tensor(y_train)
 
     dataset_train = TensorDataset(X_train, y_train) # create your datset
-    train_loader = DataLoader(dataset_train, batch_size=1, shuffle=True) # create your dataloader
+    train_loader = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True) # create your dataloader
 
     X_val = torch.Tensor(X_val) # transform to torch tensor
     y_val = torch.Tensor(y_val)
 
     dataset_val = TensorDataset(X_val, y_val) # create your datset
-    val_loader = DataLoader(dataset_val, batch_size=1, shuffle=True) # create your dataloader
+    val_loader = DataLoader(dataset_val, batch_size=args.batch_size, shuffle=True) # create your dataloader
     
     return train_loader, val_loader
 
@@ -171,7 +177,7 @@ if __name__ == "__main__":
     skf = StratifiedKFold(n_splits=5, shuffle=True)
 
     list_samples = os.listdir(args.feature_path)
-    y = get_y(list_samples, args.y_path)
+    y = get_y(list_samples, args)
 
     list_auc = []
 
@@ -189,9 +195,9 @@ if __name__ == "__main__":
 
         print('Load Train and Test Set')
         loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-        train_loader, val_loader = get_loaders(args.feature_path, list_samples, y, train_index, val_index)
+        train_loader, val_loader = get_loaders(args, list_samples, y, train_index, val_index)
 
-        print('Start Training')
+        print('\nSTARTING TRAINING')
 
         list_loss_train = []
         list_auc_train = []
@@ -231,14 +237,14 @@ if __name__ == "__main__":
 
         list_auc.append(auc_max)
 
-        plt.plot(train_loss, label='train')
-        plt.plot(val_loss, label='val')
+        plt.plot(list_loss_train, label='train')
+        plt.plot(list_loss_val, label='val')
         plt.legend()
         plt.title('Loss')
         plt.savefig(os.path.join(args.graph_path, 'loss_fold_{}.png'.format(i+1)))
 
-        plt.plot(train_auc, label='train')
-        plt.plot(val_auc, label='val')
+        plt.plot(list_auc_train, label='train')
+        plt.plot(list_auc_val, label='val')
         plt.legend()
         plt.title('AUC (best={:.3f})'.format(auc_max))
         plt.savefig(os.path.join(args.graph_path, 'auc_fold_{}.png'.format(i+1)))
