@@ -131,9 +131,7 @@ class GatedAttention(nn.Module):
         # M = torch.mm(A, H)  # KxL
 
         Y_prob = self.classifier(M)
-        print(Y_prob)
         Y_hat = torch.ge(Y_prob, 0.5).float()
-        print(Y_hat)
 
         return Y_prob, Y_hat, A
 
@@ -149,6 +147,8 @@ class GatedAttention(nn.Module):
         Y = Y.float()
         Y_prob, _, A = self.forward(X)
         Y_prob = torch.clamp(Y_prob, min=1e-5, max=1. - 1e-5)
-        neg_log_likelihood = -1. * (Y * torch.log(Y_prob) + (1. - Y) * torch.log(1. - Y_prob))  # negative log bernoulli
+        print(Y_prob.size())
+        neg_log_likelihood = -1. * (Y * torch.log(Y_prob) + (1. - Y) * torch.log(1. - Y_prob))
+        print(neg_log_likelihood)  # negative log bernoulli
 
         return neg_log_likelihood, A
