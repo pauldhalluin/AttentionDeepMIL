@@ -63,8 +63,7 @@ if __name__ == "__main__":
         elif args.model=='gated_attention':
             model = GatedAttention()
         checkpoint = torch.load(os.path.join(args.model_path, model_dict))
-        model.load_state_dict(checkpoint['model_state_dict'])
-
+        model.load_state_dict(checkpoint)
         X_test = get_X_test(args, list_samples)
         list_pred = eval(X_test)
         print(list_pred)
