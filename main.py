@@ -156,7 +156,7 @@ def eval(epoch):
         val_loss += loss.data[0]
         error, proba_prediction, _ = model.calculate_classification_error(data, bag_label)
 
-        list_pred.append(proba_prediction.numpy()[0, 0])
+        list_pred.append(proba_prediction.detach().numpy()[0, 0])
 
     # calculate loss and error for epoch
     val_loss /= len(val_loader)
