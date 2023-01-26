@@ -166,7 +166,7 @@ def eval(epoch):
 
 
 if __name__ == "__main__":
-    skf = StratifiedKFold(n_splits=1, shuffle=True)
+    skf = StratifiedKFold(n_splits=5, shuffle=True)
 
     list_samples = os.listdir(args.feature_path)
     y = get_y(list_samples, args.y_path)
