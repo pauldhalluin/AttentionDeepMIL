@@ -96,13 +96,13 @@ def get_loaders(args, list_samples, y, train_index, val_index):
     y_train = torch.Tensor(y_train)
 
     dataset_train = TensorDataset(X_train, y_train) # create your datset
-    train_loader = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True) # create your dataloader
+    train_loader = DataLoader(dataset_train, batch_size=1, shuffle=True) # create your dataloader
 
     X_val = torch.Tensor(X_val) # transform to torch tensor
     y_val = torch.Tensor(y_val)
 
     dataset_val = TensorDataset(X_val, y_val) # create your datset
-    val_loader = DataLoader(dataset_val, batch_size=args.batch_size, shuffle=True) # create your dataloader
+    val_loader = DataLoader(dataset_val, batch_size=1, shuffle=True) # create your dataloader
     
     return train_loader, val_loader
 
@@ -116,8 +116,8 @@ def train(epoch):
         # bag_label = label[0]
         bag_label = label
 
-        # list_label.append(int(bag_label.detach().numpy()[0]))
-        list_label += list(bag_label.detach().numpy())
+        list_label.append(int(bag_label.detach().numpy()[0]))
+        # list_label += list(bag_label.detach().numpy())
 
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
@@ -127,10 +127,10 @@ def train(epoch):
         optimizer.zero_grad()
         # calculate loss and metrics
         loss, _, y_prob = model.calculate_objective(data, bag_label)
-        # train_loss += loss.data[0]
-        train_loss += loss.item()
-        # list_pred.append(y_prob.detach().numpy()[0, 0])
-        list_pred += list(y_prob.detach().numpy()[:,0, 0])
+        train_loss += loss.data[0]
+        # train_loss += loss.item()
+        list_pred.append(y_prob.detach().numpy()[0, 0])
+        # list_pred += list(y_prob.detach().numpy()[:,0, 0])
 
         # backward pass
         loss.backward()
@@ -142,8 +142,8 @@ def train(epoch):
 
     auc_epoch = roc_auc_score(list_label, list_pred)
 
-    # return train_loss.cpu.numpy()[0], auc_epoch
-    return train_loss, auc_epoch
+    return train_loss.cpu.numpy()[0], auc_epoch
+    # return train_loss, auc_epoch
 
 
 def eval(epoch):
@@ -152,8 +152,8 @@ def eval(epoch):
     list_label = []
     list_pred = []
     for batch_idx, (data, bag_label) in enumerate(val_loader):
-        # list_label.append(int(bag_label.numpy()[0]))
-        list_label += list(bag_label.detach().numpy())
+        list_label.append(int(bag_label.numpy()[0]))
+        # list_label += list(bag_label.detach().numpy())
 
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
@@ -161,18 +161,19 @@ def eval(epoch):
 
         # calculate loss and metrics
         loss, _, y_prob = model.calculate_objective(data, bag_label)
-        # val_loss += loss.data[0]
-        val_loss += loss.item()
+        val_loss += loss.data[0]
+        # val_loss += loss.item()
 
-        # list_pred.append(y_prob.detach().numpy()[0, 0])
-        list_pred += list(y_prob.detach().numpy()[:,0, 0])
-
+        list_pred.append(y_prob.detach().numpy()[0, 0])
+        # list_pred += list(y_prob.detach().numpy()[:,0, 0])
+    print(list_pred)
+    print(list_label)
     # calculate loss and error for epoch
     val_loss /= len(val_loader)
     auc_epoch = roc_auc_score(list_label, list_pred)
 
-    # return val_loss.cpu().numpy()[0], auc_epoch
-    return val_loss, auc_epoch
+    return val_loss.cpu().numpy()[0], auc_epoch
+    # return val_loss, auc_epoch
 
 
 if __name__ == "__main__":

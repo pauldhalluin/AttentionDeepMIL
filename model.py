@@ -118,17 +118,17 @@ class GatedAttention(nn.Module):
         # H = H.view(-1, 50 * 4 * 4)
         # H = self.feature_extractor_part2(H)  # NxL
 
-        H = x
-        # H = x.squeeze(0)
+        # H = x
+        H = x.squeeze(0)
         A_V = self.attention_V(H)  # NxD
         A_U = self.attention_U(H)  # NxD
         A = self.attention_weights(A_V * A_U) # element wise multiplication # NxK
-        A = torch.transpose(A, 2, 1)  # KxN
-        # A = torch.transpose(A, 1, 0)  # KxN
-        A = F.softmax(A, dim=2) # softmax over N
-        # A = F.softmax(A, dim=1) # softmax over N
-        M = torch.matmul(A, H)  # KxL
-        # M = torch.mm(A, H)  # KxL
+        # A = torch.transpose(A, 2, 1)  # KxN
+        A = torch.transpose(A, 1, 0)  # KxN
+        # A = F.softmax(A, dim=2) # softmax over N
+        A = F.softmax(A, dim=1) # softmax over N
+        # M = torch.matmul(A, H)  # KxL
+        M = torch.mm(A, H)  # KxL
 
         Y_prob = self.classifier(M)
         Y_hat = torch.ge(Y_prob, 0.5).float()
@@ -164,9 +164,9 @@ class GatedAttention(nn.Module):
         return error, Y_prob, Y_hat
 
     def calculate_objective(self, X, Y):
-        # Y = Y.float()
+        Y = Y.float()
         Y_prob1, _, A = self.forward(X)
         Y_prob = torch.clamp(Y_prob1, min=1e-5, max=1. - 1e-5)
-        # neg_log_likelihood = -1. * (Y * torch.log(Y_prob) + (1. - Y) * torch.log(1. - Y_prob)) # negative log bernoulli
-        neg_log_likelihood = torch.mean(-1. * (Y * torch.log(Y_prob).squeeze() + (1. - Y) * torch.log(1. - Y_prob).squeeze()), axis=0) # negative log bernoulli
+        neg_log_likelihood = -1. * (Y * torch.log(Y_prob) + (1. - Y) * torch.log(1. - Y_prob)) # negative log bernoulli
+        # neg_log_likelihood = torch.mean(-1. * (Y * torch.log(Y_prob).squeeze() + (1. - Y) * torch.log(1. - Y_prob).squeeze()), axis=0) # negative log bernoulli
         return neg_log_likelihood, A, Y_prob1
