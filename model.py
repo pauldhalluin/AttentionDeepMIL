@@ -119,12 +119,16 @@ class GatedAttention(nn.Module):
         # H = self.feature_extractor_part2(H)  # NxL
 
         H = x
+        print(H.size())
         # H = x.squeeze(0)
         A_V = self.attention_V(H)  # NxD
+        print(A_V.size())
         A_U = self.attention_U(H)  # NxD
+        print(A_U.size())
         A = self.attention_weights(A_V * A_U) # element wise multiplication # NxK
         A = torch.transpose(A, 1, 0)  # KxN
         A = F.softmax(A, dim=1)  # softmax over N
+        print(A.size())
 
         M = torch.mm(A, H)  # KxL
 
