@@ -144,13 +144,8 @@ class GatedAttention(nn.Module):
         return error, Y_prob, Y_hat
 
     def calculate_objective(self, X, Y):
-        print(Y.size())
-        Y = Y.float()
+        # Y = Y.float()
         Y_prob, _, A = self.forward(X)
-        print(Y_prob.size())
         Y_prob = torch.clamp(Y_prob, min=1e-5, max=1. - 1e-5)
-        print(Y_prob.size())
-
-        neg_log_likelihood = -1. * (Y * torch.log(Y_prob) + (1. - Y) * torch.log(1. - Y_prob)) # negative log bernoulli
-        print(neg_log_likelihood.size())
+        neg_log_likelihood = -1. * (Y * torch.log(Y_prob).squeeze() + (1. - Y) * torch.log(1. - Y_prob).squeeze()) # negative log bernoulli
         return neg_log_likelihood, A
