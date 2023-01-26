@@ -70,24 +70,21 @@ if __name__ == "__main__":
         array_pred = eval(X_test)
         preds[i] = array_pred
 
-    print(preds.shape)
+    preds = np.mean(preds, axis=0)
 
+    submission = pd.DataFrame(
+        {"Sample ID": list_samples, "Target": preds}
+    ).sort_values(
+        "Sample ID"
+    )  # extra step to sort the sample IDs
 
+    # sanity checks
+    assert all(submission["Target"].between(0, 1)), "`Target` values must be in [0, 1]"
+    assert submission.shape == (149, 2), "Your submission file must be of shape (149, 2)"
+    assert list(submission.columns) == [
+        "Sample ID",
+        "Target",
+    ], "Your submission file must have columns `Sample ID` and `Target`"
 
-# submission = pd.DataFrame(
-#     {"Sample ID": df_test["Sample ID"].values, "Target": preds_test}
-# ).sort_values(
-#     "Sample ID"
-# )  # extra step to sort the sample IDs
-
-# # sanity checks
-# assert all(submission["Target"].between(0, 1)), "`Target` values must be in [0, 1]"
-# assert submission.shape == (149, 2), "Your submission file must be of shape (149, 2)"
-# assert list(submission.columns) == [
-#     "Sample ID",
-#     "Target",
-# ], "Your submission file must have columns `Sample ID` and `Target`"
-
-# # save the submission as a csv file
-# submission.to_csv(data_dir / "benchmark_test_output.csv", index=None)
-# submission.head()
+    # save the submission as a csv file
+    submission.to_csv(os.path.join(args.csv_path, "test_output.csv", index=None))
