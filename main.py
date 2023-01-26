@@ -14,6 +14,9 @@ import os
 import pandas as pd
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import StratifiedKFold
+import matplotlib.pyplot as plt
+
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch MNIST bags Example')
@@ -39,8 +42,9 @@ parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='disables CUDA training')
 parser.add_argument('--model', type=str, default='attention', help='Choose b/w attention and gated_attention')
 
-parser.add_argument('--feature_path', type=str, default='', help='path for DATA')
-parser.add_argument('--y_path', type=str, default='', help='path for DATA')
+parser.add_argument('--feature_path', type=str, default='', help='path for features')
+parser.add_argument('--y_path', type=str, default='', help='path for y')
+parser.add_argument('--model_path', type=str, default='', help='path for model')
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -50,60 +54,39 @@ if args.cuda:
     torch.cuda.manual_seed(args.seed)
     print('\nGPU is ON!')
 
-print('Load Train and Test Set')
-loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 
-
-def get_loader(feature_path, y_path):
+def get_data(feature_path, y_path):
     list_samples = os.listdir(feature_path)
     features = np.zeros((len(list_samples), 1000, 2048))
     dict_y1 = pd.read_csv(os.path.join(y_path, "train_output.csv")).to_dict()
     dict_y = {dict_y1['Sample ID'][key] : dict_y1['Target'][key] for key in dict_y1['Sample ID'].keys()}
     y = np.zeros(len(list_samples))
+
     for i, sample in enumerate(list_samples):
         features[i] = np.load(os.path.join(feature_path, sample))[:, 3:]
         y[i] = dict_y[sample]
 
-    tensor_x = torch.Tensor(features) # transform to torch tensor
-    tensor_y = torch.Tensor(y)
+    return features, y
 
-    my_dataset = TensorDataset(tensor_x, tensor_y) # create your datset
-    my_dataloader = DataLoader(my_dataset, batch_size=1, shuffle=True) # create your dataloader
+
+def get_loaders(X, y, train_index, val_index):
+
+    X_train, y_train = X[train_index], y[train_index]
+    X_val, y_val = X[val_index], y[val_index]
+
+    X_train = torch.Tensor(X_train) # transform to torch tensor
+    y_train = torch.Tensor(y_train)
+
+    dataset_train = TensorDataset(X_train, y_train) # create your datset
+    train_loader = DataLoader(dataset_train, batch_size=1, shuffle=True) # create your dataloader
+
+    X_val = torch.Tensor(X_val) # transform to torch tensor
+    y_val = torch.Tensor(y_val)
+
+    dataset_val = TensorDataset(X_val, y_val) # create your datset
+    val_loader = DataLoader(dataset_val, batch_size=1, shuffle=True) # create your dataloader
     
-    return my_dataloader
-
-
-train_loader = get_loader(args.feature_path, args.y_path)
-
-# train_loader = data_utils.DataLoader(MnistBags(target_number=args.target_number,
-#                                                mean_bag_length=args.mean_bag_length,
-#                                                var_bag_length=args.var_bag_length,
-#                                                num_bag=args.num_bags_train,
-#                                                seed=args.seed,
-#                                                train=True),
-#                                      batch_size=1,
-#                                      shuffle=True,
-#                                      **loader_kwargs)
-
-# test_loader = data_utils.DataLoader(MnistBags(target_number=args.target_number,
-#                                               mean_bag_length=args.mean_bag_length,
-#                                               var_bag_length=args.var_bag_length,
-#                                               num_bag=args.num_bags_test,
-#                                               seed=args.seed,
-#                                               train=False),
-#                                     batch_size=1,
-#                                     shuffle=False,
-#                                     **loader_kwargs)
-
-print('Init Model')
-if args.model=='attention':
-    model = Attention()
-elif args.model=='gated_attention':
-    model = GatedAttention()
-if args.cuda:
-    model.cuda()
-
-optimizer = optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.999), weight_decay=args.reg)
+    return train_loader, val_loader
 
 
 def train(epoch):
@@ -143,41 +126,90 @@ def train(epoch):
 
     auc_epoch = roc_auc_score(list_label, list_pred)
 
-    print('Epoch: {}, Loss: {:.4f}, Train AUC: {:.4f}'.format(epoch, train_loss.cpu().numpy()[0], auc_epoch))
+    return train_loss.cpu().numpy()[0], auc_epoch
 
 
-def test():
+def eval(epoch):
     model.eval()
-    test_loss = 0.
-    test_error = 0.
-    for batch_idx, (data, label) in enumerate(test_loader):
-        bag_label = label[0]
-        instance_labels = label[1]
+    val_loss = 0.
+    list_label = []
+    list_pred = []
+    for batch_idx, (data, bag_label) in enumerate(val_loader):
+        list_label.append(int(bag_label.numpy()[0]))
+
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
         data, bag_label = Variable(data), Variable(bag_label)
-        loss, attention_weights = model.calculate_objective(data, bag_label)
-        test_loss += loss.data[0]
-        error, predicted_label = model.calculate_classification_error(data, bag_label)
-        test_error += error
 
-        if batch_idx < 5:  # plot bag labels and instance labels for first 5 bags
-            bag_level = (bag_label.cpu().data.numpy()[0], int(predicted_label.cpu().data.numpy()[0][0]))
-            instance_level = list(zip(instance_labels.numpy()[0].tolist(),
-                                 np.round(attention_weights.cpu().data.numpy()[0], decimals=3).tolist()))
+        # calculate loss and metrics
+        loss, _ = model.calculate_objective(data, bag_label)
+        val_loss += loss.data[0]
+        error, proba_prediction, _ = model.calculate_classification_error(data, bag_label)
 
-            print('\nTrue Bag Label, Predicted Bag Label: {}\n'
-                  'True Instance Labels, Attention Weights: {}'.format(bag_level, instance_level))
+        list_pred.append(proba_prediction.numpy()[0, 0])
 
-    test_error /= len(test_loader)
-    test_loss /= len(test_loader)
+    # calculate loss and error for epoch
+    val_loss /= len(val_loader)
+    auc_epoch = roc_auc_score(list_label, list_pred)
 
-    print('\nTest Set, Loss: {:.4f}, Test error: {:.4f}'.format(test_loss.cpu().numpy()[0], test_error))
+    return val_loss.cpu().numpy()[0], auc_epoch
 
 
 if __name__ == "__main__":
-    print('Start Training')
-    for epoch in range(1, args.epochs + 1):
-        train(epoch)
-    # print('Start Testing')
-    # test()
+    skf = StratifiedKFold(n_splits=5, shuffle=True)
+
+    X, y = get_data(args.feature_path, args.y_path)
+
+    for i, (train_index, val_index) in enumerate(skf.split(X, y)):
+        print(f"\nSplit {i+1}:")
+
+        print('Init Model')
+        if args.model=='attention':
+            model = Attention()
+        elif args.model=='gated_attention':
+            model = GatedAttention()
+        if args.cuda:
+            model.cuda()
+        optimizer = optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.999), weight_decay=args.reg)
+
+        print('Load Train and Test Set')
+        loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
+        train_loader, val_loader = get_loaders(X, y, train_index, val_index)
+
+        print('Start Training')
+
+        list_loss_train = []
+        list_auc_train = []
+
+        list_loss_val = []
+        list_auc_val = []
+
+        auc_max = -1
+
+        for epoch in range(1, args.epochs + 1):
+            train_loss, train_auc = train(epoch)
+            val_loss, val_auc = eval(epoch)
+
+            if val_auc > auc_max:
+                torch.save(model.state_dict(), os.path.join(args.model_path, 'model_fold_{}.pth'.format(i+1)))
+
+            print('\nTrain Loss: {:.4f}, Val loss: {:.4f}'.format(train_loss, val_loss))
+            print('Train AUC: {:.4f}, Val AUC: {:.4f}'.format(train_auc, val_auc))
+
+            list_loss_train.append(train_loss)
+            list_auc_train.append(train_auc)
+
+            list_loss_val.append(val_loss)
+            list_auc_val.append(val_auc)
+
+        plt.plot(train_loss, label='train')
+        plt.plot(val_loss, label='val')
+        plt.legend()
+        plt.title('Loss')
+        plt.show()
+
+        plt.plot(train_auc, label='train')
+        plt.plot(val_auc, label='val')
+        plt.legend()
+        plt.title('AUC')
+        plt.show()      
