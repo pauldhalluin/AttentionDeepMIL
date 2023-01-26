@@ -47,7 +47,7 @@ def eval(X_test):
     model.eval()
     list_pred = []
     for sample in X_test:
-        Y_prob, _, _ = model(torch.unsqueeze(sample, dim=0))
+        Y_prob, _, _ = model.test_forward(torch.unsqueeze(sample, dim=0))
         list_pred.append(Y_prob.detach().numpy()[0, 0])
     return np.array(list_pred)
 
