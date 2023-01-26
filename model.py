@@ -137,12 +137,12 @@ class GatedAttention(nn.Module):
 
 
     # AUXILIARY METHODS
-    def calculate_classification_error(self, X, Y):
-        Y = Y.float()
-        Y_prob, Y_hat, _ = self.forward(X)
-        error = 1. - Y_hat.eq(Y).cpu().float().mean().item()
+    # def calculate_classification_error(self, X, Y):
+    #     Y = Y.float()
+    #     Y_prob, Y_hat, _ = self.forward(X)
+    #     error = 1. - Y_hat.eq(Y).cpu().float().mean().item()
 
-        return error, Y_prob, Y_hat
+    #     return error, Y_prob, Y_hat
 
     def calculate_objective(self, X, Y):
         Y = Y.float()

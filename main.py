@@ -118,6 +118,7 @@ def train(epoch):
 
         list_label.append(int(bag_label.detach().numpy()[0]))
         # list_label += list(bag_label.detach().numpy())
+        print(list_label[-1].shape)
 
         if args.cuda:
             data, bag_label = data.cuda(), bag_label.cuda()
@@ -127,11 +128,13 @@ def train(epoch):
         optimizer.zero_grad()
         # calculate loss and metrics
         loss, _, y_prob = model.calculate_objective(data, bag_label)
+        print(loss.data[0])
         train_loss += loss.data[0]
         # train_loss += loss.item()
 
         list_pred.append(y_prob.detach().numpy()[0, 0])
         # list_pred += list(y_prob.detach().numpy()[:,0, 0])
+        print(list_pred[-1].shape)
 
         # backward pass
         loss.backward()
@@ -142,7 +145,7 @@ def train(epoch):
     train_loss /= len(train_loader)
 
     auc_epoch = roc_auc_score(list_label, list_pred)
-
+    print(train_loss.cpu().numpy()[0])
     return train_loss.cpu().numpy()[0], auc_epoch
     # return train_loss, auc_epoch
 
