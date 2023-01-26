@@ -206,6 +206,7 @@ if __name__ == "__main__":
                 val_loss, val_auc = eval(epoch)
 
                 if val_auc > auc_max:
+                    auc_max = val_auc
                     torch.save(model.state_dict(), os.path.join(args.model_path, 'model_fold_{}.pth'.format(i+1)))
                     stop = 0
                 else:
