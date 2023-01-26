@@ -48,8 +48,8 @@ def eval(X_test):
     list_pred = []
     for sample in X_test:
         Y_prob, _, _ = model(torch.unsqueeze(sample, dim=0))
-        list_pred.append(Y_prob.detach().numpy())
-    return list_pred
+        list_pred.append(Y_prob.detach().numpy()[0, 0])
+    return np.array(list_pred)
 
 
 if __name__ == "__main__":
@@ -57,7 +57,9 @@ if __name__ == "__main__":
     list_samples = os.listdir(args.feature_path)
     list_models = os.listdir(args.model_path)
 
-    for model_dict in list_models:
+    preds = np.zeros(list_models, list_samples)
+
+    for i, model_dict in enumerate(list_models):
         if args.model=='attention':
             model = Attention()
         elif args.model=='gated_attention':
@@ -65,8 +67,10 @@ if __name__ == "__main__":
         checkpoint = torch.load(os.path.join(args.model_path, model_dict))
         model.load_state_dict(checkpoint)
         X_test = get_X_test(args, list_samples)
-        list_pred = eval(X_test)
-        print(list_pred)
+        array_pred = eval(X_test)
+        preds[i] = array_pred
+
+    print(preds.shape)
 
 
 
