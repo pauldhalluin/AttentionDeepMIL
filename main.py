@@ -242,12 +242,14 @@ if __name__ == "__main__":
         plt.legend()
         plt.title('Loss')
         plt.savefig(os.path.join(args.graph_path, 'loss_fold_{}.png'.format(i+1)))
+        plt.figure().clear()
 
         plt.plot(list_auc_train, label='train')
         plt.plot(list_auc_val, label='val')
         plt.legend()
         plt.title('AUC (best={:.3f})'.format(auc_max))
         plt.savefig(os.path.join(args.graph_path, 'auc_fold_{}.png'.format(i+1)))
+        plt.figure().clear()
     
     print('\nAUC results\n')
     for i, auc in enumerate(list_auc):
