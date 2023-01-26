@@ -57,7 +57,7 @@ if __name__ == "__main__":
     list_samples = os.listdir(args.feature_path)
     list_models = os.listdir(args.model_path)
 
-    preds = np.zeros(list_models, list_samples)
+    preds = np.zeros((len(list_models), len(list_samples)))
 
     for i, model_dict in enumerate(list_models):
         if args.model=='attention':
