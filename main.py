@@ -182,6 +182,10 @@ if __name__ == "__main__":
     list_auc = []
 
     new_model_path = os.path.join(args.model_path, str(args.batch_size) + '_' + str(args.lr) + '_' + str(args.reg))
+
+    while os.path.exists(new_model_path):
+        new_model_path = new_model_path + '_'
+
     os.makedirs(new_model_path)
 
     for i, (train_index, val_index) in enumerate(skf.split(list_samples, y)):
