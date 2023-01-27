@@ -205,6 +205,10 @@ if __name__ == "__main__":
 
         print('Load Train and Test Set')
         loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
+
+        if i > 0:
+            del(train_loader)
+            del(val_loader)
         train_loader, val_loader = get_loaders(args, list_samples, y, train_index, val_index)
 
         print('\nSTARTING TRAINING')
