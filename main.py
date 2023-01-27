@@ -192,6 +192,7 @@ if __name__ == "__main__":
         new_graph_path = new_graph_path + '_'
 
     os.makedirs(new_model_path)
+    os.makedirs(new_graph_path)
 
     for i, (train_index, val_index) in enumerate(skf.split(list_samples, y)):
         print(f"\nSplit {i+1}:")
