@@ -185,9 +185,11 @@ if __name__ == "__main__":
     list_auc = []
 
     new_model_path = os.path.join(args.model_path, str(args.batch_size) + '_' + str(args.lr) + '_' + str(args.reg))
+    new_graph_path = os.path.join(args.graph_path, str(args.batch_size) + '_' + str(args.lr) + '_' + str(args.reg))
 
     while os.path.exists(new_model_path):
         new_model_path = new_model_path + '_'
+        new_graph_path = new_graph_path + '_'
 
     os.makedirs(new_model_path)
 
@@ -255,14 +257,14 @@ if __name__ == "__main__":
         plt.plot(list_loss_val, label='val')
         plt.legend()
         plt.title('Loss')
-        plt.savefig(os.path.join(args.graph_path, 'loss_fold_{}.png'.format(i+1)))
+        plt.savefig(os.path.join(new_graph_path, 'loss_fold_{}.png'.format(i+1)))
         plt.figure().clear()
 
         plt.plot(list_auc_train, label='train')
         plt.plot(list_auc_val, label='val')
         plt.legend()
         plt.title('AUC (best={:.3f})'.format(auc_max))
-        plt.savefig(os.path.join(args.graph_path, 'auc_fold_{}.png'.format(i+1)))
+        plt.savefig(os.path.join(new_graph_path, 'auc_fold_{}.png'.format(i+1)))
         plt.figure().clear()
     
     print('\nAUC results\n')
